@@ -1,0 +1,34 @@
+"""Скользящее среднее (deque) и стек для отмены преобразования."""
+
+from collections import deque
+
+
+def moving_average(temps, window_size=7):  # сглаживает ряд скользящим средним через deque как очередь последних значений
+    window = deque()
+    result = []
+
+    for t in temps:
+        window.append(t)
+        if len(window) > window_size:
+            window.popleft()  # убираем самое старое значение
+
+        avg = sum(window) / len(window)
+        result.append(avg)
+
+    return result
+
+
+class TransformStack:
+    """стек версий списка температур: save перед преобразованием, undo возвращает предыдущую версию."""
+
+    def __init__(self):
+        self.stack = []
+
+    def save(self, temps):  # сохраняет копию списка перед изменением
+        self.stack.append(temps.copy())
+
+    def undo(self):  # снимает и возвращает последнюю сохранённую версию (none если стек пуст)
+        if not self.stack:
+            print("Нечего отменять - стек пуст.")
+            return None
+        return self.stack.pop()
