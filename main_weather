@@ -1,0 +1,73 @@
+"""
+Прогнозирование погоды по префиксным суммам
+Город: Амстердам, данные за 2025 год
+"""
+
+from data_io import read_data
+from prefix_stats import MONTH_NAMES, make_prefix_sums, average_temp_by_month
+from search_sort import find_hottest_and_coldest, sort_months_by_temp
+from bst import build_bst, find_days_above
+from smoothing import moving_average, TransformStack
+
+
+def main():
+    dates, temps = read_data("amsterdam_2025.csv")
+    print(f"Загружено дней: {len(temps)}\n")
+
+    #1.средняя температура по месяцам через префиксные суммы
+    prefix = make_prefix_sums(temps)
+    averages = average_temp_by_month(prefix, dates)
+
+    print("Средняя температура по месяцам (Амстердам, 2025):")
+    for i in range(12):
+        print(f"  {MONTH_NAMES[i]}: {averages[i]:.2f} °C")
+    print()
+
+    #2.самый тёплый и самый холодный день
+    hottest, coldest = find_hottest_and_coldest(dates, temps)
+    print(f"Самый тёплый день: {hottest[0]}, температура {hottest[1]} °C")
+    print(f"Самый холодный день: {coldest[0]}, температура {coldest[1]} °C")
+    print()
+
+    #3. сортировка месяцев по средней температуре
+    sorted_months = sort_months_by_temp(averages)
+    print("Месяцы, отсортированные по средней температуре (от холодного к тёплому):")
+    for name, avg in sorted_months:
+        print(f"  {name}: {avg:.2f} °C")
+    print()
+
+    #4. бинарное дерево поиска: дни с температурой выше порога
+    bst_root = build_bst(dates, temps)
+
+    threshold = 20.0
+    days_above = find_days_above(bst_root, threshold)
+    print(f"Дни с температурой выше {threshold} °C: {len(days_above)} дней")
+    for date, temp in days_above[:10]:  # первые 10, чтобы не было слишком много
+        print(f"  {date}: {temp} °C")
+    if len(days_above) > 10:
+        print(f"  ... и ещё {len(days_above) - 10} дней")
+    print()
+
+    #5. скользящее среднее с окном 7 дней
+    stack = TransformStack()
+
+    print("Температура за первые 10 дней (до сглаживания):")
+    print(" ", [round(t, 1) for t in temps[:10]])
+
+    stack.save(temps)  # сохраняем версию перед преобразованием
+    smoothed = moving_average(temps, window_size=7)
+
+    print("Температура за первые 10 дней (после сглаживания, окно 7 дней):")
+    print(" ", [round(t, 2) for t in smoothed[:10]])
+    print()
+
+    #6. отмена сглаживания через стек
+    print("Пользователь решил отменить сглаживание...")
+    restored = stack.undo()
+    if restored is not None:
+        print("Температура за первые 10 дней (после отмены):")
+        print(" ", [round(t, 1) for t in restored[:10]])
+
+
+if __name__ == "__main__":
+    main()
