@@ -1,0 +1,37 @@
+"""Префиксные суммы и средняя температура по месяцам."""
+
+MONTH_NAMES = [
+    "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+]
+
+
+def make_prefix_sums(temps):  # prefix[i] = сумма temps[0..i-1]; сумма temps[a..b-1] = prefix[b] - prefix[a]
+    prefix = [0.0]
+    for t in temps:
+        prefix.append(prefix[-1] + t)
+    return prefix
+
+
+def days_in_each_month(dates):  # количество дней в каждом месяце по строкам дат yyyy-mm-dd
+    counts = [0] * 12
+    for d in dates:
+        month = int(d.split("-")[1])
+        counts[month - 1] += 1
+    return counts
+
+
+def average_temp_by_month(prefix, dates):  # средняя температура за каждый месяц через префиксные суммы
+    counts = days_in_each_month(dates)
+
+    averages = []
+    start = 0  # индекс начала месяца в массиве temps
+    for month in range(12):
+        days = counts[month]
+        end = start + days
+        month_sum = prefix[end] - prefix[start]
+        month_avg = month_sum / days
+        averages.append(month_avg)
+        start = end
+
+    return averages
