@@ -1,0 +1,15 @@
+"""Чтение данных из CSV"""
+
+import csv
+
+
+def read_data(filename):  # читает csv, возвращает два списка: даты и температуры
+    dates = []
+    temps = []
+    with open(filename, "r") as f:
+        reader = csv.reader(f)
+        next(reader)  # пропускаем заголовок
+        for row in reader:
+            dates.append(row[0])
+            temps.append(float(row[1]))
+    return dates, temps
