@@ -1,0 +1,51 @@
+"""Бинарное дерево поиска по температуре"""
+
+
+class TreeNode:
+    """узел bst: temperature — ключ, dates — список дат с этой температурой."""
+
+    def __init__(self, temperature, date):
+        self.temperature = temperature
+        self.dates = [date]
+        self.left = None
+        self.right = None
+
+
+def bst_insert(root, temperature, date):  # вставляет значение в дерево, возвращает корень
+    if root is None:
+        return TreeNode(temperature, date)
+
+    if temperature < root.temperature:
+        root.left = bst_insert(root.left, temperature, date)
+    elif temperature > root.temperature:
+        root.right = bst_insert(root.right, temperature, date)
+    else:
+        root.dates.append(date)  # такая температура уже есть — добавляем дату
+
+    return root
+
+
+def build_bst(dates, temps):  # строит дерево по всем дням года
+    root = None
+    for date, temp in zip(dates, temps):
+        root = bst_insert(root, temp, date)
+    return root
+
+
+def collect_dates_above(root, threshold, result):  # симметричный обход: собирает в result даты с температурой > threshold
+    if root is None:
+        return
+
+    collect_dates_above(root.left, threshold, result)  # сначала меньшие температуры
+
+    if root.temperature > threshold:
+        for date in root.dates:
+            result.append((date, root.temperature))
+
+    collect_dates_above(root.right, threshold, result)  # потом большие температуры
+
+
+def find_days_above(root, threshold):
+    result = []
+    collect_dates_above(root, threshold, result)
+    return result
